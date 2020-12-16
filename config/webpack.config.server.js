@@ -10,12 +10,14 @@ const sassModuleRegex = /\.module\.(scss|sass)$/;
 
 /** nodeExternalsㄴ(서버 실행파일에 리액트 라이브러리 빼고 가져오기) */
 const nodeExternals = require("webpack-node-externals");
+const getClientEnvironment = require("./env");
 
 /** 환경변수 주입 */
 const webpack = require("webpack");
-const getClientEnviroment = require("./env");
-const publicUrl = paths.servedPath.slice(0, -1);
-const env = getClientEnviroment(publicUrl);
+// const getClientEnviroment = require("./env");
+// const publicUrl = paths.servedPath.slice(0, -1);
+// const env = getClientEnviroment(publicUrl);
+const env = getClientEnvironment(paths.publicUrlOrPath.slice(0, -1));
 
 module.exports = {
   mode: "production", //모드(옵션실행 환경)설정
@@ -23,9 +25,10 @@ module.exports = {
   target: "node", //실행환경
   output: {
     path: paths.ssrBuild, //빌드 경로
-    fileName: "server.js", //파일 이름
-    chunkFilename: "js/[name].chuck.js", //청크파일 이름
+    filename: "server.js", //파일 이름
+    chunkFilename: "js/[name].chunk.js", //청크파일 이름
     publicPath: paths.servedPath, //정적파일이 제공될 경로
+    //git: publicPath: paths.publicUrlOrPath,
   },
   /** 로더 설정 2*/
   module: {
@@ -155,7 +158,11 @@ module.exports = {
     modules: ["node_modules"],
   },
   //nodeExternals(서버 실행파일에 리액트 라이브러리 빼고 가져오기)
-  externals: [nodeExternals()],
+  externals: [
+    nodeExternals({
+      allowlist: [/@babel/],
+    }),
+  ],
   //환경변수 적용
   plugins: [new webpack.DefinePlugin(env.stringified)],
 };
