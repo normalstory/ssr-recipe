@@ -30,3 +30,14 @@ build();
 
 // - 빌드 테스트 : node scripts/build.server.js
 // - 결과물 확인 : node dist/server.js
+
+/** package.json 수정 */
+// "scripts": {
+//   "start": "node scripts/start.js",
+//   "build": "node scripts/build.js",
+//   "test": "node scripts/test.js",
+//   "start:server":"node dist/server.js",
+//   "build:server":"node scripts/build.server.js"
+// },
+// - 빌드 테스트 : yarn build:server
+// - 결과물 확인 : yarn start:server
