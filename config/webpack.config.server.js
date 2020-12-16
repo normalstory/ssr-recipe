@@ -8,6 +8,15 @@ const cssModuleRegex = /\.module\.css$/;
 const sassRegex = /\.(scss|sass)$/;
 const sassModuleRegex = /\.module\.(scss|sass)$/;
 
+/** nodeExternalsㄴ(서버 실행파일에 리액트 라이브러리 빼고 가져오기) */
+const nodeExternals = require("webpack-node-externals");
+
+/** 환경변수 주입 */
+const webpack = require("webpack");
+const getClientEnviroment = require("./env");
+const publicUrl = paths.servedPath.slice(0, -1);
+const env = getClientEnviroment(publicUrl);
+
 module.exports = {
   mode: "production", //모드(옵션실행 환경)설정
   entry: paths.ssrIndexJs, //엔트리 경로
@@ -141,4 +150,12 @@ module.exports = {
       },
     ],
   },
+  //node_modules 로드하기(서버 실행파일에 리액트 라이브러리를 포함하지 않아도 됨)
+  resolve: {
+    modules: ["node_modules"],
+  },
+  //nodeExternals(서버 실행파일에 리액트 라이브러리 빼고 가져오기)
+  externals: [nodeExternals()],
+  //환경변수 적용
+  plugins: [new webpack.DefinePlugin(env.stringified)],
 };
