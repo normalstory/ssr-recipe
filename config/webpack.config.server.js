@@ -27,8 +27,8 @@ module.exports = {
     path: paths.ssrBuild, //빌드 경로
     filename: "server.js", //파일 이름
     chunkFilename: "js/[name].chunk.js", //청크파일 이름
-    publicPath: paths.servedPath, //정적파일이 제공될 경로
-    //git: publicPath: paths.publicUrlOrPath,
+    //publicPath: paths.servedPath, //정적파일이 제공될 경로
+    publicPath: paths.publicUrlOrPath,
   },
   /** 로더 설정 2*/
   module: {
@@ -44,7 +44,14 @@ module.exports = {
               customize: require.resolve(
                 "babel-preset-react-app/webpack-overrides"
               ),
-
+              presets: [
+                [
+                  require.resolve("babel-preset-react-app"),
+                  {
+                    runtime: "automatic",
+                  },
+                ],
+              ],
               plugins: [
                 [
                   require.resolve("babel-plugin-named-asset-import"),
@@ -58,9 +65,7 @@ module.exports = {
                   },
                 ],
               ],
-              // directory for faster rebuilds.
               cacheDirectory: true,
-              // See #6846 for context on why cacheCompression is disabled
               cacheCompression: false,
               compact: false,
             },
@@ -70,9 +75,13 @@ module.exports = {
           {
             test: cssRegex,
             exclude: cssModuleRegex,
+            //  exportOnlyLocals: true 옵션을 설정해야 실제 css 파일을 생성하지 않습니다.
             loader: require.resolve("css-loader"),
             options: {
-              exportOnlyLocals: true, //true 여야 실제 css파일을 생성하지 않음
+              importLoaders: 1,
+              modules: {
+                exportOnlyLocals: true,
+              },
             },
           },
           // Adds support for CSS Modules 를 위한 처리 (https://github.com/css-modules/css-modules)
@@ -81,9 +90,11 @@ module.exports = {
             test: cssModuleRegex,
             loader: require.resolve("css-loader"),
             options: {
-              modules: true,
-              exportOnlyLocals: true,
-              getLocalIdent: getCSSModuleLocalIdent,
+              importLoaders: 1,
+              modules: {
+                exportOnlyLocals: true,
+                getLocalIdent: getCSSModuleLocalIdent,
+              },
             },
           },
           // Opt-in support for SASS  를 위한 처리 (using .scss or .sass extensions).
@@ -96,10 +107,13 @@ module.exports = {
               {
                 loader: require.resolve("css-loader"),
                 options: {
-                  exportOnlyLocals: true,
+                  importLoaders: 3,
+                  modules: {
+                    exportOnlyLocals: true,
+                  },
                 },
               },
-              require.resolve("css-loader"),
+              require.resolve("sass-loader"),
             ],
           },
           // Adds support for CSS Modules, but(+) using SASS 를 위한 처리
@@ -111,12 +125,14 @@ module.exports = {
               {
                 loader: require.resolve("css-loader"),
                 options: {
-                  modules: true,
-                  exportOnlyLocals: true,
-                  getLocalIdent: getCSSModuleLocalIdent,
+                  importLoaders: 3,
+                  modules: {
+                    exportOnlyLocals: true,
+                    getLocalIdent: getCSSModuleLocalIdent,
+                  },
                 },
               },
-              require.resolve("css-loader"),
+              require.resolve("sass-loader"),
             ],
           },
           // url-loader를 위한 처리
