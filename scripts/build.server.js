@@ -27,3 +27,6 @@ function build() {
 }
 
 build();
+
+// - 빌드 테스트 : node scripts/build.server.js
+// - 결과물 확인 : node dist/server.js
