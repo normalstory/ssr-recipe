@@ -1,6 +1,13 @@
 /** 웹팩 기본설정 */
 const paths = require("./paths");
 
+/** 로더 설정 1*/
+const getCSSModuleLocalIdent = require("react-dev-utils/getCSSModuleLocalIdent"); //for css모듈 고유 className 생성
+const cssRegex = /\.css$/;
+const cssModuleRegex = /\.module\.css$/;
+const sassRegex = /\.(scss|sass)$/;
+const sassModuleRegex = /\.module\.(scss|sass)$/;
+
 module.exports = {
   mode: "production", //모드(옵션실행 환경)설정
   entry: paths.ssrIndexJs, //엔트리 경로
@@ -10,5 +17,128 @@ module.exports = {
     fileName: "server.js", //파일 이름
     chunkFilename: "js/[name].chuck.js", //청크파일 이름
     publicPath: paths.servedPath, //정적파일이 제공될 경로
+  },
+  /** 로더 설정 2*/
+  module: {
+    rules: [
+      {
+        oneOf: [
+          //**자바스크립트를 위한 처리, 기존 webPack.config.js를 참조해서 작성
+          {
+            test: /\.(js|mjs|jsx|ts|tsx)$/,
+            include: paths.appSrc,
+            loader: require.resolve("babel-loader"),
+            options: {
+              customize: require.resolve(
+                "babel-preset-react-app/webpack-overrides"
+              ),
+
+              plugins: [
+                [
+                  require.resolve("babel-plugin-named-asset-import"),
+                  {
+                    loaderMap: {
+                      svg: {
+                        ReactComponent:
+                          "@svgr/webpack?-svgo,+titleProp,+ref![path]",
+                      },
+                    },
+                  },
+                ],
+              ],
+              // directory for faster rebuilds.
+              cacheDirectory: true,
+              // See #6846 for context on why cacheCompression is disabled
+              cacheCompression: false,
+              compact: false,
+            },
+          },
+
+          //**CSS를 위한 처리
+          {
+            test: cssRegex,
+            exclude: cssModuleRegex,
+            loader: require.resolve("css-loader"),
+            options: {
+              exportOnlyLocals: true, //true 여야 실제 css파일을 생성하지 않음
+            },
+          },
+          // Adds support for CSS Modules 를 위한 처리 (https://github.com/css-modules/css-modules)
+          // using the extension .module.css
+          {
+            test: cssModuleRegex,
+            loader: require.resolve("css-loader"),
+            options: {
+              modules: true,
+              exportOnlyLocals: true,
+              getLocalIdent: getCSSModuleLocalIdent,
+            },
+          },
+          // Opt-in support for SASS  를 위한 처리 (using .scss or .sass extensions).
+          // By default we support SASS Modules with the
+          // extensions .module.scss or .module.sass
+          {
+            test: sassRegex,
+            exclude: sassModuleRegex,
+            use: [
+              {
+                loader: require.resolve("css-loader"),
+                options: {
+                  exportOnlyLocals: true,
+                },
+              },
+              require.resolve("css-loader"),
+            ],
+          },
+          // Adds support for CSS Modules, but(+) using SASS 를 위한 처리
+          // using the extension .module.scss or(+) .module.sass
+          {
+            test: sassRegex,
+            exclude: sassModuleRegex,
+            use: [
+              {
+                loader: require.resolve("css-loader"),
+                options: {
+                  modules: true,
+                  exportOnlyLocals: true,
+                  getLocalIdent: getCSSModuleLocalIdent,
+                },
+              },
+              require.resolve("css-loader"),
+            ],
+          },
+          // url-loader를 위한 처리
+          {
+            test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+            loader: require.resolve("url-loader"),
+            options: {
+              emitFile: false, //파일을 따로 저장하지 않는 옵션
+              limit: 10000, //원래 9.76kb가 넘어가면 파일을 따로 저장함 but 위 emitFile 설정이 false라 저장 안함
+              name: "static/media/[name].[hash:8].[ext]",
+            },
+          },
+          // 위 설정된 확장자를 제외한 파일들은 file-loader를 사용
+          // "file" loader makes sure those assets get served by WebpackDevServer.
+          // When you `import` an asset, you get its (virtual) filename.
+          // In production, they would get copied to the `build` folder.
+          // This loader doesn't use a "test" so it will catch all modules
+          // that fall through the other loaders.
+          {
+            loader: require.resolve("file-loader"),
+            // Exclude `js` files to keep "css" loader working as it injects
+            // its runtime that would otherwise be processed through "file" loader.
+            // Also exclude `html` and `json` extensions so they get processed
+            // by webpacks internal loaders.
+            exclude: [/\.(js|mjs|jsx|ts|tsx)$/, /\.html$/, /\.json$/],
+            options: {
+              emitFile: false, //파일을 따로 저장하지 않는 옵션
+              name: "static/media/[name].[hash:8].[ext]",
+            },
+          },
+          // ** STOP ** Are you adding a new loader?
+          // Make sure to add the new loader(s) before the "file" loader.
+        ],
+      },
+    ],
   },
 };
