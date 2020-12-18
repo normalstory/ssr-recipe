@@ -9,6 +9,7 @@ const PreloadContext = createContext(null);
 export default PreloadContext;
 
 //resolve는 함수 타입
+//Preloader 컴포넌트 : resolve라는 함수를 props로 받아오며, 컴포넌트가 렌더링될 때 서버 환경에서만 resolve 호출
 export const Preloader = ({ resolve }) => {
   const preloadContext = useContext(PreloadContext);
   if (!preloadContext) return null; // context 값이 유효하지 않다면 아무것도 하지 않음
